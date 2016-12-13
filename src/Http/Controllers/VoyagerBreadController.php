@@ -231,7 +231,11 @@ class VoyagerBreadController extends Controller
             $options = json_decode($row->details);
             if (isset($options->validation)) {
                 if (isset($options->validation->rule)) {
-                    $rules[$row->field] = $options->validation->rule;
+                    if (isset($data->{$row->field})) {
+                        $rules[$row->field] = str_replace(',{{$id}}', ',' . $data->id, $options->validation->rule);
+                    } else {
+                        $rules[$row->field] = str_replace(',{{$id}}', '', $options->validation->rule);
+                    }
                 }
                 if (isset($options->validation->messages)) {
                     foreach ($options->validation->messages as $key => $msg) {
@@ -262,8 +266,8 @@ class VoyagerBreadController extends Controller
         $data->save();
 
         foreach ($rows as $row) {
-            $content = $this->getContentBasedOnType($request, $slug, $row);
             if ($row->type == 'select_multiple') {
+                $content = $this->getContentBasedOnType($request, $slug, $row);
                 $data->{$row->field}()->sync($content);
             }
         }
